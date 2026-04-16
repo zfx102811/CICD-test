@@ -24,53 +24,69 @@ jobs:
         if: success()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          curl -X POST "$LARK_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"msg_type\": \"interactive\",
-              \"card\": {
-                \"header\": {
-                  \"title\": { \"tag\": \"plain_text\", \"content\": \"Staging Deploy Succeeded\" },
-                  \"template\": \"green\"
-                },
-                \"elements\": [
-                  {
-                    \"tag\": \"div\",
-                    \"text\": {
-                      \"tag\": \"lark_md\",
-                      \"content\": \"**Repo:** ${{ github.repository }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}\"
-                    }
+          PAYLOAD=$(cat <<'ENDJSON'
+          {
+            "msg_type": "interactive",
+            "card": {
+              "header": {
+                "title": { "tag": "plain_text", "content": "✅ Staging Deploy Succeeded" },
+                "template": "green"
+              },
+              "elements": [
+                {
+                  "tag": "div",
+                  "text": {
+                    "tag": "lark_md",
+                    "content": "PLACEHOLDER"
                   }
-                ]
-              }
-            }"
+                }
+              ]
+            }
+          }
+          ENDJSON
+          )
+          CONTENT="**Repo:** ${REPO}\n**Branch:** ${BRANCH}\n**Commit:** ${SHA}\n**By:** ${ACTOR}"
+          PAYLOAD=$(echo "$PAYLOAD" | sed "s|PLACEHOLDER|${CONTENT}|")
+          curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d "$PAYLOAD"
 
       - name: Notify Lark - Staging Failed
         if: failure()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          curl -X POST "$LARK_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"msg_type\": \"interactive\",
-              \"card\": {
-                \"header\": {
-                  \"title\": { \"tag\": \"plain_text\", \"content\": \"Staging Deploy FAILED\" },
-                  \"template\": \"red\"
-                },
-                \"elements\": [
-                  {
-                    \"tag\": \"div\",
-                    \"text\": {
-                      \"tag\": \"lark_md\",
-                      \"content\": \"**Repo:** ${{ github.repository }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}\"
-                    }
+          PAYLOAD=$(cat <<'ENDJSON'
+          {
+            "msg_type": "interactive",
+            "card": {
+              "header": {
+                "title": { "tag": "plain_text", "content": "❌ Staging Deploy FAILED" },
+                "template": "red"
+              },
+              "elements": [
+                {
+                  "tag": "div",
+                  "text": {
+                    "tag": "lark_md",
+                    "content": "PLACEHOLDER"
                   }
-                ]
-              }
-            }"
+                }
+              ]
+            }
+          }
+          ENDJSON
+          )
+          CONTENT="**Repo:** ${REPO}\n**Branch:** ${BRANCH}\n**Commit:** ${SHA}\n**By:** ${ACTOR}"
+          PAYLOAD=$(echo "$PAYLOAD" | sed "s|PLACEHOLDER|${CONTENT}|")
+          curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d "$PAYLOAD"
 
   deploy-production:
     name: Deploy to Production (Tag)
@@ -89,24 +105,32 @@ jobs:
         if: success()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          curl -X POST "$LARK_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"msg_type\": \"interactive\",
-              \"card\": {
-                \"header\": {
-                  \"title\": { \"tag\": \"plain_text\", \"content\": \"Production Deploy Succeeded\" },
-                  \"template\": \"blue\"
-                },
-                \"elements\": [
-                  {
-                    \"tag\": \"div\",
-                    \"text\": {
-                      \"tag\": \"lark_md\",
-                      \"content\": \"**Repo:** ${{ github.repository }}\n**Tag:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}\"
-                    }
+          PAYLOAD=$(cat <<'ENDJSON'
+          {
+            "msg_type": "interactive",
+            "card": {
+              "header": {
+                "title": { "tag": "plain_text", "content": "🚀 Production Deploy Succeeded" },
+                "template": "blue"
+              },
+              "elements": [
+                {
+                  "tag": "div",
+                  "text": {
+                    "tag": "lark_md",
+                    "content": "PLACEHOLDER"
                   }
-                ]
-              }
-            }"
+                }
+              ]
+            }
+          }
+          ENDJSON
+          )
+          CONTENT="**Repo:** ${REPO}\n**Tag:** ${TAG}\n**Commit:** ${SHA}\n**By:** ${ACTOR}"
+          PAYLOAD=$(echo "$PAYLOAD" | sed "s|PLACEHOLDER|${CONTENT}|")
+          curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d "$PAYLOAD"
