@@ -25,26 +25,7 @@ jobs:
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
         run: |
-          cat > /tmp/payload.json << 'EOF'
-          {
-            "msg_type": "interactive",
-            "card": {
-              "header": {
-                "title": { "tag": "plain_text", "content": "Staging Deploy Succeeded" },
-                "template": "green"
-              },
-              "elements": [
-                {
-                  "tag": "div",
-                  "text": {
-                    "tag": "lark_md",
-                    "content": "**Repo:** ${{ github.repository }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}"
-                  }
-                }
-              ]
-            }
-          }
-          EOF
+          echo '{"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"Staging Deploy Succeeded"},"template":"green"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":"**Repo:** ${{ github.repository }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}"}}]}}' > /tmp/payload.json
           curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d @/tmp/payload.json
 
       - name: Notify Lark - Staging Failed
@@ -52,26 +33,7 @@ jobs:
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
         run: |
-          cat > /tmp/payload.json << 'EOF'
-          {
-            "msg_type": "interactive",
-            "card": {
-              "header": {
-                "title": { "tag": "plain_text", "content": "Staging Deploy FAILED" },
-                "template": "red"
-              },
-              "elements": [
-                {
-                  "tag": "div",
-                  "text": {
-                    "tag": "lark_md",
-                    "content": "**Repo:** ${{ github.repository }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}"
-                  }
-                }
-              ]
-            }
-          }
-          EOF
+          echo '{"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"Staging Deploy FAILED"},"template":"red"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":"**Repo:** ${{ github.repository }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}"}}]}}' > /tmp/payload.json
           curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d @/tmp/payload.json
 
   deploy-production:
@@ -92,24 +54,5 @@ jobs:
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
         run: |
-          cat > /tmp/payload.json << 'EOF'
-          {
-            "msg_type": "interactive",
-            "card": {
-              "header": {
-                "title": { "tag": "plain_text", "content": "Production Deploy Succeeded" },
-                "template": "blue"
-              },
-              "elements": [
-                {
-                  "tag": "div",
-                  "text": {
-                    "tag": "lark_md",
-                    "content": "**Repo:** ${{ github.repository }}\n**Tag:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}"
-                  }
-                }
-              ]
-            }
-          }
-          EOF
+          echo '{"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"Production Deploy Succeeded"},"template":"blue"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":"**Repo:** ${{ github.repository }}\n**Tag:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**By:** ${{ github.actor }}"}}]}}' > /tmp/payload.json
           curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d @/tmp/payload.json
