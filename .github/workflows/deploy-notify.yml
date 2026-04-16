@@ -21,24 +21,25 @@ jobs:
           echo "Staging deploy complete."
 
       - name: Notify Lark - Staging
-        if: success()
+        if: always()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
-          DEPLOY_INFO: "Staging deploy succeeded | repo=${{ github.repository }} branch=${{ github.ref_name }} commit=${{ github.sha }} by=${{ github.actor }}"
+          DEPLOY_STATUS: ${{ job.status }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          curl -s -X POST "${LARK_WEBHOOK_URL}" \
+          echo "=== Debug: URL length ==="
+          echo "${LARK_WEBHOOK_URL}" | wc -c
+          echo "=== Debug: URL first 10 chars ==="
+          echo "${LARK_WEBHOOK_URL}" | cut -c1-10
+          echo "=== Sending notification ==="
+          curl -v -X POST "${LARK_WEBHOOK_URL}" \
             -H "Content-Type: application/json" \
-            -d '{"msg_type":"text","content":{"text":"'"${DEPLOY_INFO}"'"}}'
-
-      - name: Notify Lark - Staging Failed
-        if: failure()
-        env:
-          LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
-          DEPLOY_INFO: "Staging deploy FAILED | repo=${{ github.repository }} branch=${{ github.ref_name }} commit=${{ github.sha }} by=${{ github.actor }}"
-        run: |
-          curl -s -X POST "${LARK_WEBHOOK_URL}" \
-            -H "Content-Type: application/json" \
-            -d '{"msg_type":"text","content":{"text":"'"${DEPLOY_INFO}"'"}}'
+            -d '{"msg_type":"text","content":{"text":"deploy test"}}' \
+            2>&1 || true
+          echo "=== curl exit code: $? ==="
 
   deploy-production:
     name: Deploy to Production (Tag)
@@ -54,11 +55,11 @@ jobs:
           echo "Production deploy complete."
 
       - name: Notify Lark - Production
-        if: success()
+        if: always()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
-          DEPLOY_INFO: "Production deploy succeeded | tag=${{ github.ref_name }} repo=${{ github.repository }} commit=${{ github.sha }} by=${{ github.actor }}"
         run: |
-          curl -s -X POST "${LARK_WEBHOOK_URL}" \
+          curl -v -X POST "${LARK_WEBHOOK_URL}" \
             -H "Content-Type: application/json" \
-            -d '{"msg_type":"text","content":{"text":"'"${DEPLOY_INFO}"'"}}'
+            -d '{"msg_type":"text","content":{"text":"production deploy test"}}' \
+            2>&1 || true
