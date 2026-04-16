@@ -20,26 +20,31 @@ jobs:
           docker build -t cicd-test-app:staging .
           echo "Staging deploy complete."
 
-      - name: Notify Lark - Staging
-        if: always()
+      - name: Notify Lark - Staging Success
+        if: success()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
-          DEPLOY_STATUS: ${{ job.status }}
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           ACTOR: ${{ github.actor }}
         run: |
-          echo "=== Debug: URL length ==="
-          echo "${LARK_WEBHOOK_URL}" | wc -c
-          echo "=== Debug: URL first 10 chars ==="
-          echo "${LARK_WEBHOOK_URL}" | cut -c1-10
-          echo "=== Sending notification ==="
-          curl -v -X POST "${LARK_WEBHOOK_URL}" \
-            -H "Content-Type: application/json" \
-            -d '{"msg_type":"text","content":{"text":"deploy test"}}' \
-            2>&1 || true
-          echo "=== curl exit code: $? ==="
+          printf '{"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"✅ Staging Deploy Succeeded"},"template":"green"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":"**Repo:** %s\\n**Branch:** %s\\n**Commit:** %s\\n**By:** %s"}}]}}' \
+            "$REPO" "$BRANCH" "$SHA" "$ACTOR" > /tmp/lark.json
+          curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d @/tmp/lark.json
+
+      - name: Notify Lark - Staging Failed
+        if: failure()
+        env:
+          LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          printf '{"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"❌ Staging Deploy FAILED"},"template":"red"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":"**Repo:** %s\\n**Branch:** %s\\n**Commit:** %s\\n**By:** %s"}}]}}' \
+            "$REPO" "$BRANCH" "$SHA" "$ACTOR" > /tmp/lark.json
+          curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d @/tmp/lark.json
 
   deploy-production:
     name: Deploy to Production (Tag)
@@ -54,12 +59,15 @@ jobs:
           docker build -t cicd-test-app:${{ github.ref_name }} .
           echo "Production deploy complete."
 
-      - name: Notify Lark - Production
-        if: always()
+      - name: Notify Lark - Production Success
+        if: success()
         env:
           LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          curl -v -X POST "${LARK_WEBHOOK_URL}" \
-            -H "Content-Type: application/json" \
-            -d '{"msg_type":"text","content":{"text":"production deploy test"}}' \
-            2>&1 || true
+          printf '{"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"🚀 Production Deploy Succeeded"},"template":"blue"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":"**Repo:** %s\\n**Tag:** %s\\n**Commit:** %s\\n**By:** %s"}}]}}' \
+            "$REPO" "$TAG" "$SHA" "$ACTOR" > /tmp/lark.json
+          curl -s -X POST "${LARK_WEBHOOK_URL}" -H "Content-Type: application/json" -d @/tmp/lark.json
